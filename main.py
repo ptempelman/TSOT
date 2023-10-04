@@ -23,6 +23,7 @@ def run_epoch(population) -> (List[Chromosome], List[float]):
 
     sorted_population = [x for _, x in sorted(zip(scores, population), reverse=True)]
 
+    # TODO: pick elite chromosomes to save
     new_population = apply_mutation(sorted_population)
     new_population = apply_crossover(new_population)
 
