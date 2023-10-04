@@ -11,15 +11,21 @@ class Chromosome:
         self.preprocessing = [random.choice(get_all_preprocessing())]
         self.model = random.choice(get_all_models())
         self.model_params = get_random_model_params(self.model)
+    
+    def __str__(self) -> str:
+        return f"{self.preprocessing}, {self.model}, {self.model_params}"
 
 def mutate(pipeline: Chromosome):
     
     def add_preprocessing_step(pipeline: Chromosome):
-        pipeline.preprocessing.insert(random.randint(0, len(self.preprocessing)), random.choice(get_all_preprocessing()))
+        random_preproc = random.choice(get_all_preprocessing())
+        if random_preproc not in pipeline.preprocessing:
+            pipeline.preprocessing.insert(random.randint(0, len(pipeline.preprocessing)), random_preproc)
         return pipeline
 
     def remove_preprocessing_step(pipeline: Chromosome):
-        pipeline.preprocessing.remove(random.randint(0, len(self.preprocessing)))
+        if len(pipeline.preprocessing) > 0:
+            pipeline.preprocessing.pop(random.randint(0, len(pipeline.preprocessing) - 1))
         return pipeline
 
     def switch_model(pipeline: Chromosome):
@@ -39,6 +45,8 @@ def mutate(pipeline: Chromosome):
         pipeline = switch_model(pipeline)
     else:
         pipeline = mutate_model_params(pipeline)
+
+    return pipeline
 
 def crossover(pipeline_a: Chromosome, pipeline_b: Chromosome):
 
