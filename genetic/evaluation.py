@@ -3,11 +3,11 @@ import random
 def evaluate(pipeline, dataset):
     score = 0
     
-    if pipeline.preprocessing.contains("standardization"):
+    if "standardization" in pipeline.preprocessing:
         score += 0
-    if pipeline.preprocessing.contains("normalization"):
+    if "normalization" in pipeline.preprocessing:
         score += 0.1
-    if pipeline.preprocessing.contains("seasonal_decomposition"):
+    if "seasonal_decomposition" in pipeline.preprocessing:
         score += 0.3
 
 

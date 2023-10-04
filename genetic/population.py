@@ -10,3 +10,11 @@ def generate_population(population_size) -> List[Chromosome]:
         population.append(Chromosome())
 
     return population
+
+def apply_mutation(population) -> List[Chromosome]:
+    new_population = population[:50] + population[:50]
+    return new_population
+
+
+def apply_crossover(population) -> List[Chromosome]:
+    return population

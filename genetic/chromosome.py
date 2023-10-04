@@ -1,16 +1,14 @@
 import random
 
 from models.all import get_all_models
-from models.holtwinters import HoltWintersModel
 from models.model_params import get_random_model_params
-from genetic.chromosome import Chromosome
 
 from preprocessing.all import get_all_preprocessing
 
 
 class Chromosome:
     def __init__(self) -> None:
-        self.preprocessing = random.choice(get_all_preprocessing())
+        self.preprocessing = [random.choice(get_all_preprocessing())]
         self.model = random.choice(get_all_models())
         self.model_params = get_random_model_params(self.model)
 
