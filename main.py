@@ -25,9 +25,10 @@ def run_epoch(population, dataset, configuration) -> (List[Chromosome], List[flo
 
     scores = []
     for p in tqdm(population):
-        scores.append(evaluate(p, dataset, configuration))
+        scores.append(evaluate(p, dataset.copy(), configuration))
 
     sorted_population = [x for _, x in sorted(zip(scores, population))]
+    print(sorted_population[0])
 
     elite_num = int(0.2*len(sorted_population))
     elites = [copy.deepcopy(x) for x in sorted_population[:elite_num]]
@@ -42,7 +43,7 @@ if __name__ == "__main__":
 
     configuration = {
         "epochs": 40,
-        "population_size": 20,
+        "population_size": 10,
         "steps": 5,
         "forecast_steps": 5,
         "mutation_prob": 0.2,
