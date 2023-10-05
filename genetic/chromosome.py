@@ -1,4 +1,5 @@
 import random
+import copy
 
 from models.all import get_all_models
 from models.model_params import get_random_model_params
@@ -14,6 +15,21 @@ class Chromosome:
     
     def __str__(self) -> str:
         return f"{self.preprocessing}, {self.model}, {self.model_params}"
+
+    def __lt__(self, other) -> bool:
+        return True
+    
+    def __deepcopy__(self, memo):
+
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        
+        for k, v in self.__dict__.items():
+            setattr(result, k, copy.deepcopy(v, memo))
+        
+        return result
+
 
 def mutate(pipeline: Chromosome):
     

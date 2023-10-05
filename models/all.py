@@ -1,4 +1,4 @@
 
 
 def get_all_models():
-    return ["holt_winters", "arima", "sarima"]
+    return ["holt_winters", "arima"]  # "sarima" (very slow)

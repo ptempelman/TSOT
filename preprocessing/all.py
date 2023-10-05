@@ -1,4 +1,4 @@
 
 
 def get_all_preprocessing():
-    return ["standardization", "normalization", "seasonal_decomposition"]
+    return ["standardization", "normalization", "logtrans", "differencing", "seasonal_decomposition"]

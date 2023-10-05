@@ -1,6 +1,12 @@
 import random
 from sklearn.metrics import mean_squared_error
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
+from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.tsa.statespace.sarimax import SARIMAX
+from statsmodels.tsa.seasonal import seasonal_decompose
+
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+
 import numpy as np
 
 def evaluate(pipeline, dataset, configuration):
@@ -11,42 +17,78 @@ def evaluate(pipeline, dataset, configuration):
 
     
     if "standardization" in pipeline.preprocessing:
-        score += 0
+        standard_scaler = StandardScaler()
+        train = standard_scaler.fit_transform(train.reshape(-1, 1)).squeeze()
+        test = standard_scaler.transform(test.reshape(-1, 1)).squeeze()
     if "normalization" in pipeline.preprocessing:
-        score += 0.1
-    if "seasonal_decomposition" in pipeline.preprocessing:
-        score += 0.3
+        minmax_scaler = MinMaxScaler()
+        train = minmax_scaler.fit_transform(train.reshape(-1, 1)).squeeze()
+        test = minmax_scaler.transform(test.reshape(-1, 1)).squeeze()
+    # if "logtrans" in pipeline.preprocessing:
+    #     if train.min() < 0 and train.min() < test.min():
+    #         inc = np.abs(train.min()) + 0.001
+    #         train += inc
+    #         test += inc
+    #     elif test.min() < 0:
+    #         inc = np.abs(test.min()) + 0.001
+    #         train += inc
+    #         test += inc
+            
+    #     train = np.log(train + 1)
+    #     test = np.log(test + 1)
+    # if "differencing" in pipeline.preprocessing:
+    #     train = train - train.shift()
 
+        # residual.dropna(inplace=True)
 
-    if pipeline.model == "holt_winters":
+    forecasts = []
+    actuals = []
 
-        forecasts = []
-        actuals = []
+    for i in range(0, len(test) - configuration["steps"] + 1):
+        if i % int(0.5 * len(test)) == 0:
 
-        for i in range(0, len(test) - configuration["steps"] + 1):
-            model = ExponentialSmoothing(train, seasonal='add', seasonal_periods=12)
-            fit_model = model.fit()
+            inner_train = train.copy()
 
-            forecast = fit_model.forecast(steps=configuration["steps"])
-            forecasts.append(forecast[0])
-            actuals.append(test[i])
+            if "seasonal_decomposition" in pipeline.preprocessing:
+                decomposition = seasonal_decompose(inner_train, two_sided=False, period=24)
+                inner_train = decomposition.resid[~np.isnan(decomposition.resid)]
+                trend_train = decomposition.trend[~np.isnan(decomposition.trend)]
+                seasonal_train = decomposition.seasonal[~np.isnan(decomposition.seasonal)]
 
-            train = np.append(train, test[i])
+                test[i] -= (trend_train[-1] + seasonal_train[i % 24])
 
-        rmse = mean_squared_error(actuals, forecasts, squared=False)
-        print(rmse)
+            if pipeline.model == "holt_winters":
+                model = ExponentialSmoothing(inner_train, seasonal='add', seasonal_periods=24)
+                fit_model = model.fit()
 
-        score = 0.1
-    elif pipeline.model == "arima":
-        score += 0.05
-    elif pipeline.model == "sarima":
-        score += 0.3
+                forecast = fit_model.forecast(steps=configuration["steps"])
+                forecasts.append(forecast[0])
+                actuals.append(test[i])
 
-    score *= random.uniform(0.8, 1.2)
+            elif pipeline.model == "arima":
+                model = ARIMA(inner_train, order=(1,1,1))
+                fit_model = model.fit()
+        
+                forecast = fit_model.forecast(steps=configuration["steps"])
+                forecasts.append(forecast[0])
+                actuals.append(test[i])
+
+            elif pipeline.model == "sarima":
+                model = SARIMAX(inner_train, order=(1,1,1), seasonal_order=(1,1,1,24))
+                fit_model = model.fit(disp=False)
+
+                forecast = fit_model.forecast(steps=configuration["steps"])
+                forecasts.append(forecast[0])
+                actuals.append(test[i])
+
+        train = np.append(train, test[i])
+        
+    score = mean_absolute_percentage_error(actuals, forecasts)
     
     return score
 
 
 def mean_absolute_percentage_error(y_true, y_pred): 
     y_true, y_pred = np.array(y_true), np.array(y_pred)
-    return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
+    return np.mean(np.abs((y_true - y_pred) / y_true))
+
