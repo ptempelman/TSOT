@@ -24,22 +24,19 @@ def evaluate(pipeline, dataset, configuration):
         minmax_scaler = MinMaxScaler()
         train = minmax_scaler.fit_transform(train.reshape(-1, 1)).squeeze()
         test = minmax_scaler.transform(test.reshape(-1, 1)).squeeze()
-    # if "logtrans" in pipeline.preprocessing:
-    #     if train.min() < 0 and train.min() < test.min():
-    #         inc = np.abs(train.min()) + 0.001
-    #         train += inc
-    #         test += inc
-    #     elif test.min() < 0:
-    #         inc = np.abs(test.min()) + 0.001
-    #         train += inc
-    #         test += inc
+    if "logtrans" in pipeline.preprocessing:
+        if train.min() < 0 and train.min() < test.min():
+            inc = np.abs(train.min()) + 0.001
+            train += inc
+            test += inc
+        elif test.min() < 0:
+            inc = np.abs(test.min()) + 0.001
+            train += inc
+            test += inc
             
-    #     train = np.log(train + 1)
-    #     test = np.log(test + 1)
-    # if "differencing" in pipeline.preprocessing:
-    #     train = train - train.shift()
+        train = np.log(train + 1)
+        test = np.log(test + 1)
 
-        # residual.dropna(inplace=True)
 
     forecasts = []
     actuals = []
@@ -56,6 +53,10 @@ def evaluate(pipeline, dataset, configuration):
                 seasonal_train = decomposition.seasonal[~np.isnan(decomposition.seasonal)]
 
                 test[i] -= (trend_train[-1] + seasonal_train[i % 24])
+        
+            if "differencing" in pipeline.preprocessing:
+                inner_train = np.diff(inner_train)
+                test[i] -= inner_train[-1]
 
             if pipeline.model == "holt_winters":
                 model = ExponentialSmoothing(inner_train, seasonal='add', seasonal_periods=24)
@@ -84,6 +85,7 @@ def evaluate(pipeline, dataset, configuration):
         train = np.append(train, test[i])
         
     score = mean_absolute_percentage_error(actuals, forecasts)
+    print(pipeline, score)
     
     return score
 
