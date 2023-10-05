@@ -42,7 +42,7 @@ def evaluate(pipeline, dataset, configuration):
     actuals = []
 
     for i in range(0, len(test) - configuration["steps"] + 1):
-        if i % int(0.5 * len(test)) == 0:
+        if i % int(0.3 * len(test)) == 0:
 
             inner_train = train.copy()
 
@@ -63,29 +63,25 @@ def evaluate(pipeline, dataset, configuration):
                 fit_model = model.fit()
 
                 forecast = fit_model.forecast(steps=configuration["steps"])
-                forecasts.append(forecast[0])
-                actuals.append(test[i])
 
             elif pipeline.model == "arima":
                 model = ARIMA(inner_train, order=(1,1,1))
                 fit_model = model.fit()
         
                 forecast = fit_model.forecast(steps=configuration["steps"])
-                forecasts.append(forecast[0])
-                actuals.append(test[i])
 
             elif pipeline.model == "sarima":
                 model = SARIMAX(inner_train, order=(1,1,1), seasonal_order=(1,1,1,24))
                 fit_model = model.fit(disp=False)
 
                 forecast = fit_model.forecast(steps=configuration["steps"])
-                forecasts.append(forecast[0])
-                actuals.append(test[i])
+            forecasts += list(forecast)
+            actuals += list(test[i:i+configuration["steps"]])
 
         train = np.append(train, test[i])
         
     score = mean_absolute_percentage_error(actuals, forecasts)
-    print(pipeline, score)
+    # print(pipeline, score)
     
     return score
 
