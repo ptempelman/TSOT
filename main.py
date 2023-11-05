@@ -19,6 +19,8 @@ def genetic_algorithm(configuration, dataset):
     for epoch in range(configuration["epochs"]):
         population, old_scores = run_epoch(population, dataset, configuration)
         print(f"Epoch {epoch} mean: {np.mean(old_scores):.02f} best: {old_scores[0]:.03f}")
+    
+    return population[0]
 
 
 def run_epoch(population, dataset, configuration) -> (List[Chromosome], List[float]):
@@ -42,7 +44,7 @@ def run_epoch(population, dataset, configuration) -> (List[Chromosome], List[flo
 if __name__ == "__main__":
 
     configuration = {
-        "epochs": 40,
+        "epochs": 5,
         "population_size": 10,
         "steps": 5,
         "forecast_steps": 5,
@@ -52,4 +54,4 @@ if __name__ == "__main__":
     
     dataset = get_dataset('electricity')
 
-    genetic_algorithm(configuration, dataset)
+    print(str(genetic_algorithm(configuration, dataset)))
