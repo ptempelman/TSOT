@@ -43,39 +43,40 @@ def evaluate(pipeline, dataset, configuration):
     for i in range(0, len(test) - configuration["steps"] + 1):
         if i % int(0.3 * len(test)) == 0:
             inner_train = train.copy()
+            inner_test = test.copy()
+            inner_test = inner_test[i : i + configuration["steps"]]
 
-            if (
-                "seasonal_decomposition" in pipeline.preprocessing
-            ):  # TODO: it seems like seasonal_decomposition should 1) be applied to all training data 2) also be applied to all data coming in during timeseries cross validation (both don't happen)
-                
-                # TODO: this is what should happen!
-                # Note: during training, we deseasonalize all data points up to the one we are trying to predict. 
-                # During evaluation, we get the $S_t$ of the test data point we are trying to predict and add it back to our prediction. 
-                # This is because our model will be trained to make a prediction that ignores the seasonal component. 
-                # To evaluate that prediction fairly, we add back the seasonal component to the prediction. 
-                
+            if "seasonal_decomposition" in pipeline.preprocessing:
                 decomposition = seasonal_decompose(
                     inner_train, two_sided=False, period=24
                 )
-                inner_train = decomposition.resid[~np.isnan(decomposition.resid)]
+                resid_train = decomposition.resid[~np.isnan(decomposition.resid)]
                 trend_train = decomposition.trend[~np.isnan(decomposition.trend)]
                 seasonal_train = decomposition.seasonal[
                     ~np.isnan(decomposition.seasonal)
                 ]
 
-                test[i] -= seasonal_train[
-                    i % 24
-                ]  # (trend_train[-1] + seasonal_train[i % 24])
+                inner_train = inner_train - seasonal_train
+                inner_test = (
+                    inner_test
+                    - seasonal_train[
+                        i - (4 * configuration["cycle_length"]) : 
+                        i - (4 * configuration["cycle_length"]) + configuration["steps"]
+                    ]
+                )
+                # print(inner_test.shape)
 
-            if (
-                "differencing" in pipeline.preprocessing
-            ):  # TODO: it seems like differencing should 1) be applied to all training data 2) also be applied to all data coming in during timeseries cross validation (both don't happen)
+                # test[i] -= seasonal_train[i - configuration["cycle_length"]]
+
+            if "differencing" in pipeline.preprocessing:
                 inner_train = np.diff(inner_train)
-                test[i] -= inner_train[-1]
+                inner_test = np.diff(np.append(train[-1], inner_test))
 
             if pipeline.model == "holt_winters":
                 model = ExponentialSmoothing(
-                    inner_train, seasonal="add", seasonal_periods=24 # TODO make seasonal_periods a parameter
+                    inner_train,
+                    seasonal="add",
+                    seasonal_periods=configuration["cycle_length"],
                 )
                 fit_model = model.fit()
 
@@ -89,13 +90,16 @@ def evaluate(pipeline, dataset, configuration):
 
             elif pipeline.model == "sarima":
                 model = SARIMAX(
-                    inner_train, order=(1, 1, 1), seasonal_order=(1, 1, 1, 24) # TODO make seasonal_order (24) a parameter
+                    inner_train,
+                    order=(1, 1, 1),
+                    seasonal_order=(1, 1, 1, configuration["cycle_length"]),
                 )
                 fit_model = model.fit(disp=False)
 
                 forecast = fit_model.forecast(steps=configuration["steps"])
+
             forecasts += list(forecast)
-            actuals += list(test[i : i + configuration["steps"]])
+            actuals += list(inner_test)
 
         train = np.append(train, test[i])
 

@@ -50,6 +50,7 @@ if __name__ == "__main__":
         "forecast_steps": 5,
         "mutation_prob": 0.2,
         "crossover_prob": 0.2,
+        "cycle_length": 24,
     }
     
     dataset = get_dataset('electricity')
