@@ -13,6 +13,8 @@ import numpy as np
 
 def genetic_algorithm(configuration, dataset):
     population = generate_population(configuration["population_size"])
+    total_pipelines_over_epochs = []
+    seen_pipelines = []
 
     for epoch in range(configuration["epochs"]):
         population, old_scores = run_epoch(population, dataset, configuration)
@@ -20,7 +22,13 @@ def genetic_algorithm(configuration, dataset):
             f"Epoch {epoch} mean: {np.mean(old_scores):.02f} best: {old_scores[0]:.03f}"
         )
 
-    return population[0]
+        for pl in population:
+            if str(pl) not in seen_pipelines:
+                seen_pipelines.append(str(pl))
+
+        total_pipelines_over_epochs.append(len(seen_pipelines))
+
+    return population[0], total_pipelines_over_epochs
 
 
 def run_epoch(population, dataset, configuration) -> (List[Chromosome], List[float]):
@@ -42,14 +50,17 @@ def run_epoch(population, dataset, configuration) -> (List[Chromosome], List[flo
 
 if __name__ == "__main__":
     configuration = {
-        "epochs": 5,
+        "epochs": 10,
         "population_size": 10,
         "steps": 2,
-        "mutation_prob": 0.3,
-        "crossover_prob": 0.3,
+        "mutation_prob": 0.4,
+        "crossover_prob": 0.4,
         "cycle_length": 24,
     }
 
     dataset = get_dataset("electricity", size=1000)
 
-    print(str(genetic_algorithm(configuration, dataset)))
+    best_chromosome, num_pipelines_over_epochs = genetic_algorithm(
+        configuration, dataset
+    )
+    print(num_pipelines_over_epochs)

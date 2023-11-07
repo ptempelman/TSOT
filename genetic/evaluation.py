@@ -8,8 +8,12 @@ from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tools.sm_exceptions import ConvergenceWarning
 
 warnings.simplefilter("ignore", ConvergenceWarning)
-warnings.filterwarnings("ignore", message="Non-invertible starting MA parameters found.")
-warnings.filterwarnings("ignore", message="Non-stationary starting autoregressive parameters found.")
+warnings.filterwarnings(
+    "ignore", message="Non-invertible starting MA parameters found."
+)
+warnings.filterwarnings(
+    "ignore", message="Non-stationary starting autoregressive parameters found."
+)
 
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
@@ -115,7 +119,7 @@ def evaluate(pipeline, dataset, configuration):
                     first_value,
                     seasonal_train_subtract,
                 )
-            )  # 1)
+            )
             forecasts += forecast
 
             actual = list(test[i : i + configuration["steps"]])
