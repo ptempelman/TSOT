@@ -18,13 +18,14 @@ def genetic_algorithm(configuration, dataset):
     best_per_epoch = []
     seen_pipelines = []
 
+    cached_evaluations = {}
     for epoch in range(configuration["epochs"]):
-        population, old_scores = run_epoch(population, dataset, configuration)
+        population, old_scores, cached_evaluations = run_epoch(population, dataset, configuration, cached_evaluations)
         mean_score_epoch = np.mean(old_scores)
         best_score_epoch = old_scores[0]
-        print(
-            f"Epoch {epoch} mean: {mean_score_epoch:.02f} best: {best_score_epoch:.03f}"
-        )
+        
+        print(f"Epoch {epoch} mean: {mean_score_epoch:.02f} best: {best_score_epoch:.03f}")
+        
         mean_per_epoch.append(mean_score_epoch)
         best_per_epoch.append(best_score_epoch)
         
@@ -37,10 +38,11 @@ def genetic_algorithm(configuration, dataset):
     return population[0], total_pipelines_over_epochs, mean_per_epoch, best_per_epoch
 
 
-def run_epoch(population, dataset, configuration) -> (List[Chromosome], List[float]):
+def run_epoch(population, dataset, configuration, cached_evaluations) -> (List[Chromosome], List[float]):
     scores = []
     for p in tqdm(population):
-        scores.append(evaluate(p, dataset.copy(), configuration))
+        score, cached_evaluations = evaluate(p, dataset.copy(), configuration, cached_evaluations)
+        scores.append(score)
 
     sorted_population = [x for _, x in sorted(zip(scores, population))]
     print(sorted_population[0])
@@ -51,4 +53,4 @@ def run_epoch(population, dataset, configuration) -> (List[Chromosome], List[flo
     new_population = apply_mutation(sorted_population, configuration["mutation_prob"])
     new_population = apply_crossover(new_population, configuration["crossover_prob"])
 
-    return elites + new_population[0 : len(population) - elite_num], sorted(scores)
+    return elites + new_population[0 : len(population) - elite_num], sorted(scores), cached_evaluations

@@ -50,10 +50,11 @@ def mutate(pipeline: Chromosome):
 
     def switch_model(pipeline: Chromosome):
         pipeline.model = random.choice(get_all_models())
+        pipeline.model_params = get_random_model_params(pipeline.model)
         return pipeline
 
     def mutate_model_params(pipeline: Chromosome):
-        # TODO
+        pipeline.model_params = get_random_model_params(pipeline.model)
         return pipeline
     
     def increase_cycle_length(pipeline: Chromosome):
@@ -79,24 +80,27 @@ def crossover(pipeline_a: Chromosome, pipeline_b: Chromosome):
         pipeline_b.preprocessing = preprocessing_a
         return pipeline_a, pipeline_b
 
-    def exchange_model(pipeline_a: Chromosome, pipeline_b: Chromosome):
-        model_a = pipeline_a.model
-        pipeline_a.model = pipeline_b.model
-        pipeline_b.model = model_a
-        return pipeline_a, pipeline_b
+    # def exchange_model(pipeline_a: Chromosome, pipeline_b: Chromosome):
+    #     model_a = pipeline_a.model
+    #     pipeline_a.model = pipeline_b.model
+    #     pipeline_b.model = model_a
+    #     return pipeline_a, pipeline_b
 
-    def exchange_model_parameters(pipeline_a: Chromosome, pipeline_b: Chromosome):
-        # TODO
-        return pipeline_a, pipeline_b
+    # def exchange_model_parameters(pipeline_a: Chromosome, pipeline_b: Chromosome):
+    #     # TODO
+    #     return pipeline_a, pipeline_b
 
-    r = random.random()
-    if (
-        r <= 0.33
-    ):  # TODO: now exchange_preprocessing and exchange_model are essentially the same thing (to fix: exchange_preprocessing should exchange some preprocessing steps, not all)
-        pipeline_a, pipeline_b = exchange_preprocessing(pipeline_a, pipeline_b)
-    elif 0.33 < r <= 0.66:
-        pipeline_a, pipeline_b = exchange_model(pipeline_a, pipeline_b)
-    else:
-        pipeline_a, pipeline_b = exchange_model_parameters(pipeline_a, pipeline_b)
+    # r = random.random()
+    # if (
+    #     r <= 0.33
+    # ):  # TODO: now exchange_preprocessing and exchange_model are essentially the same thing (to fix: exchange_preprocessing should exchange some preprocessing steps, not all)
+    #     pipeline_a, pipeline_b = exchange_preprocessing(pipeline_a, pipeline_b)
+    # elif 0.33 < r <= 0.66:
+    #     pipeline_a, pipeline_b = exchange_model(pipeline_a, pipeline_b)
+    # else:
+    #     pipeline_a, pipeline_b = exchange_model_parameters(pipeline_a, pipeline_b)
+        
+    crossover_operation = random.choice([exchange_preprocessing])
+    pipeline_a, pipeline_b = crossover_operation(pipeline_a, pipeline_b)
 
     return pipeline_a, pipeline_b

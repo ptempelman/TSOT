@@ -20,8 +20,15 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 import numpy as np
 
 
-def evaluate(pipeline, dataset, configuration):
-    cycle_length = pipeline.cycle_length if configuration["force_cycle_length"] is None else configuration["force_cycle_length"]
+def evaluate(pipeline, dataset, configuration, cached_evaluations):
+    if str(pipeline) in cached_evaluations:
+        return cached_evaluations[str(pipeline)], cached_evaluations
+    
+    cycle_length = (
+        pipeline.cycle_length
+        if configuration["force_cycle_length"] is None
+        else configuration["force_cycle_length"]
+    )
 
     score = 0
 
@@ -88,28 +95,30 @@ def evaluate(pipeline, dataset, configuration):
             if pipeline.model == "holt_winters":
                 model = ExponentialSmoothing(
                     inner_train,
-                    seasonal="add",
+                    trend=pipeline.model_params["trend"],
+                    seasonal=pipeline.model_params["seasonal"],
                     seasonal_periods=cycle_length,
                 )
                 fit_model = model.fit()
 
                 forecast = fit_model.forecast(steps=configuration["steps"])
-
             elif pipeline.model == "arima":
-                model = ARIMA(inner_train, order=(1, 1, 1))
+                model = ARIMA(
+                    inner_train, order=(1, 0, 1), seasonal_order=(1, 0, 0, cycle_length)
+                )
                 fit_model = model.fit()
 
                 forecast = fit_model.forecast(steps=configuration["steps"])
 
-            elif pipeline.model == "sarima":
-                model = SARIMAX(
-                    inner_train,
-                    order=(1, 1, 1),
-                    seasonal_order=(1, 1, 1, cycle_length),
-                )
-                fit_model = model.fit(disp=False)
+            # elif pipeline.model == "sarima":
+            #     model = SARIMAX(
+            #         inner_train,
+            #         order=(1, 0, 1),
+            #         seasonal_order=(1, 0, 0, cycle_length),
+            #     )
+            #     fit_model = model.fit(disp=False)
 
-                forecast = fit_model.forecast(steps=configuration["steps"])
+            #     forecast = fit_model.forecast(steps=configuration["steps"])
 
             forecast = list(
                 reverse_preprocessing_steps(
@@ -135,8 +144,8 @@ def evaluate(pipeline, dataset, configuration):
     score = np.sqrt(mean_squared_error(actuals, forecasts))
     # print(np.average(actuals))
     # print(pipeline, score)
-
-    return score
+    cached_evaluations[str(pipeline)] = score
+    return score, cached_evaluations
 
 
 def mean_absolute_percentage_error(y_true, y_pred):
