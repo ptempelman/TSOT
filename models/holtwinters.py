@@ -1,14 +1,11 @@
-# from statsmodels.tsa.holtwinters import ExponentialSmoothing
+from statsmodels.tsa.holtwinters import ExponentialSmoothing
 
 
-# class HoltWintersModel():
-#     def __init__(self, data, trend='add', seasonal='add', seasonal_periods=12) -> None:
-#         self.data = data
-#         self.trend = trend
-#         self.seasonal = seasonal 
-#         self.seasonal_periods = seasonal_periods
-
-#     def get_model(self):
-#         return ExponentialSmoothing(self.data, self.trend, self.seasonal, self.seasonal_periods)
-
-    
+def get_holtwinters(inner_train, trend, seasonal, cycle_length):
+    model = ExponentialSmoothing(
+        inner_train,
+        trend=trend,
+        seasonal=seasonal,
+        seasonal_periods=cycle_length,
+    )
+    return model

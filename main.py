@@ -13,7 +13,10 @@ if __name__ == "__main__":
 
     dataset = get_dataset("electricity", size=1000)
 
-    best_chromosome, num_pipelines_over_epochs, mean_per_epoch, best_per_epoch = genetic_algorithm(
-        configuration, dataset
-    )
+    (
+        best_chromosome,
+        num_pipelines_over_epochs,
+        mean_per_epoch,
+        best_per_epoch,
+    ) = genetic_algorithm(configuration, dataset)
     # print(num_pipelines_over_epochs)
