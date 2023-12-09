@@ -19,4 +19,7 @@ if __name__ == "__main__":
         mean_per_epoch,
         best_per_epoch,
     ) = genetic_algorithm(configuration, dataset)
-    # print(num_pipelines_over_epochs)
+    print(best_chromosome)
+    print(num_pipelines_over_epochs) 
+    print(mean_per_epoch) 
+    print(best_per_epoch)
