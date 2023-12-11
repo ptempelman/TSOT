@@ -33,9 +33,18 @@ import numpy as np
 
 
 def evaluate(pipeline, dataset, configuration, cached_evaluations):
-    print(pipeline)
     if str(pipeline) in cached_evaluations:
-        return cached_evaluations[str(pipeline)], cached_evaluations
+        print(
+            pipeline,
+            "from cached: ",
+            cached_evaluations[str(pipeline)][0],
+            cached_evaluations[str(pipeline)][1],
+        )
+        return (
+            cached_evaluations[str(pipeline)][0],
+            cached_evaluations[str(pipeline)][1],
+            cached_evaluations,
+        )
 
     cycle_length = (
         pipeline.cycle_length
@@ -74,7 +83,7 @@ def evaluate(pipeline, dataset, configuration, cached_evaluations):
     actuals = []
 
     for i in range(0, len(test) - configuration["steps"] + 1):
-        if i % int(0.3 * len(test)) == 0:
+        if i % int((1 / configuration["num_eval_folds"]) * len(test)) == 0:
             inner_train = train.copy()
             inner_test = test.copy()
             inner_test = inner_test[i : i + configuration["steps"]]
@@ -231,14 +240,14 @@ def evaluate(pipeline, dataset, configuration, cached_evaluations):
 
         train = np.append(train, test[i])
 
-    # score = mean_absolute_percentage_error(actuals, forecasts)
+    map_score = mean_absolute_percentage_error(actuals, forecasts)
     score = np.sqrt(mean_squared_error(actuals, forecasts))
     if score > 10:
         score = 10
     # print(np.average(actuals))
-    print(pipeline, score)
-    cached_evaluations[str(pipeline)] = score
-    return score, cached_evaluations
+    print(pipeline, score, map_score)
+    cached_evaluations[str(pipeline)] = (score, map_score)
+    return score, map_score, cached_evaluations
 
 
 def mean_absolute_percentage_error(y_true, y_pred):

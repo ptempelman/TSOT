@@ -9,6 +9,7 @@ if __name__ == "__main__":
         "mutation_prob": 0.4,
         "crossover_prob": 0.4,
         "force_cycle_length": None,  # when a value is given, this means the value for the cycle length will not be optimized
+        "num_eval_folds": 4,
     }
 
     dataset = get_dataset("electricity", size=1000)
@@ -18,8 +19,12 @@ if __name__ == "__main__":
         num_pipelines_over_epochs,
         mean_per_epoch,
         best_per_epoch,
+        mean_map_per_epoch,
+        best_map_per_epoch,
     ) = genetic_algorithm(configuration, dataset)
     print(best_chromosome)
-    print(num_pipelines_over_epochs) 
-    print(mean_per_epoch) 
+    print(num_pipelines_over_epochs)
+    print(mean_per_epoch)
     print(best_per_epoch)
+    print(mean_map_per_epoch)
+    print(best_map_per_epoch)
