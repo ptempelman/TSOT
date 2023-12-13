@@ -1,9 +1,20 @@
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.discriminant_analysis import StandardScaler
+from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor
+from sklearn.feature_selection import VarianceThreshold
 from sklearn.metrics import mean_squared_error
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.tree import DecisionTreeRegressor
+from xgboost import XGBRegressor
+from tpot.builtins import ZeroCount
 
 import numpy as np
 from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import MaxAbsScaler
+from sklearn.preprocessing import (
+    MaxAbsScaler,
+    MinMaxScaler,
+    PolynomialFeatures,
+    RobustScaler,
+)
 from datasets.get_dataset import get_dataset
 
 from genetic.evaluation import mean_absolute_percentage_error
@@ -27,7 +38,9 @@ def tpot_evaluate(model, dataset, configuration):
 
             model = model
 
-            X, y = create_dataset(inner_train, n_historical=100, n_steps_ahead=2)
+            X, y = create_dataset(
+                inner_train, n_historical=100, n_steps_ahead=configuration["steps"]
+            )
             print(X.shape, y.shape)
 
             fit_model = model.fit(X, y)
@@ -72,22 +85,15 @@ def create_dataset(data, n_historical, n_steps_ahead=1):
 
 
 if __name__ == "__main__":
-    # ELECTRICITY
-    dataset = get_dataset("electricity", size=1000)
+    dataset = get_dataset(
+        "temp_houston", size=1000
+    )  # electricityh1 [16k], electricitym1 [68k], bitcoin [650k], power_houston [35k], temp_houston [1.5k]
 
     configuration = {
-        "steps": 2,
-        "num_eval_folds": 4,
+        "steps": 5,
+        "num_eval_folds": 6,
     }
 
-    model = make_pipeline(
-        MaxAbsScaler(),
-        RandomForestRegressor(
-            bootstrap=False,
-            max_features=0.45,
-            min_samples_leaf=1,
-            min_samples_split=2,
-            n_estimators=100,
-        ),
-    )
+    model = KNeighborsRegressor(n_neighbors=1, p=1, weights="uniform")
+
     print(tpot_evaluate(model, dataset, configuration))

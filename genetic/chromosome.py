@@ -6,7 +6,7 @@ from models.model_params import get_random_model_params
 
 from preprocessing.all import get_all_preprocessing
 
-cycle_lengths = [2, 7, 24, 30]
+cycle_lengths = [7, 24, 30]
 
 class Chromosome:
     def __init__(self) -> None:

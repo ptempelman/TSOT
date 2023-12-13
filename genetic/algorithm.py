@@ -29,7 +29,7 @@ def genetic_algorithm(configuration, dataset):
         best_score_epoch = old_scores[0]
 
         print(
-            f"Epoch {epoch} mean: {mean_score_epoch:.02f} best: {best_score_epoch:.03f}"
+            f"Epoch {epoch} mean: {mean_score_epoch:.02f} best: {best_score_epoch:.03f} best_map: {old_map_scores[0]}"
         )
 
         mean_per_epoch.append(mean_score_epoch)
@@ -43,7 +43,14 @@ def genetic_algorithm(configuration, dataset):
 
         total_pipelines_over_epochs.append(len(seen_pipelines))
 
-    return population[0], total_pipelines_over_epochs, mean_per_epoch, best_per_epoch, mean_map_per_epoch, best_map_per_epoch
+    return (
+        population[0],
+        total_pipelines_over_epochs,
+        mean_per_epoch,
+        best_per_epoch,
+        mean_map_per_epoch,
+        best_map_per_epoch,
+    )
 
 
 def run_epoch(
@@ -58,7 +65,7 @@ def run_epoch(
         scores.append(score)
         map_scores.append(map_score)
 
-    sorted_population = [x for _, x in sorted(zip(scores, population))]
+    sorted_population = [x for _, x in sorted(zip(map_scores, population))]
     print(sorted_population[0])
 
     elite_num = int(0.2 * len(sorted_population))

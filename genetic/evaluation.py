@@ -34,12 +34,12 @@ import numpy as np
 
 def evaluate(pipeline, dataset, configuration, cached_evaluations):
     if str(pipeline) in cached_evaluations:
-        print(
-            pipeline,
-            "from cached: ",
-            cached_evaluations[str(pipeline)][0],
-            cached_evaluations[str(pipeline)][1],
-        )
+        # print(
+        #     pipeline,
+        #     "from cached: ",
+        #     cached_evaluations[str(pipeline)][0],
+        #     cached_evaluations[str(pipeline)][1],
+        # )
         return (
             cached_evaluations[str(pipeline)][0],
             cached_evaluations[str(pipeline)][1],
@@ -106,6 +106,7 @@ def evaluate(pipeline, dataset, configuration, cached_evaluations):
                     - (2 * cycle_length)
                     + configuration["steps"]
                 ]
+
                 inner_test = inner_test - seasonal_train_subtract
 
             first_value = -1
@@ -114,6 +115,7 @@ def evaluate(pipeline, dataset, configuration, cached_evaluations):
                 inner_test = np.diff(np.append(train[-1], inner_test))
                 first_value = train[-1]
 
+            batch_size = 128
             if pipeline.model == "holt_winters":
                 model = get_holtwinters(
                     inner_train,
@@ -143,7 +145,6 @@ def evaluate(pipeline, dataset, configuration, cached_evaluations):
 
             elif pipeline.model == "rnn":
                 # print(type(inner_train), inner_train)
-                batch_size = 32
                 train_loader = get_dataloader(
                     data=inner_train,
                     input_steps=100,
@@ -168,7 +169,6 @@ def evaluate(pipeline, dataset, configuration, cached_evaluations):
                 forecast = model(pred_data).detach().numpy()[0]
             elif pipeline.model == "gru":
                 # print(type(inner_train), inner_train)
-                batch_size = 32
                 train_loader = get_dataloader(
                     data=inner_train,
                     input_steps=100,
@@ -193,7 +193,6 @@ def evaluate(pipeline, dataset, configuration, cached_evaluations):
                 forecast = model(pred_data).detach().numpy()[0]
             elif pipeline.model == "transformer":
                 # print(type(inner_train), inner_train)
-                batch_size = 32
                 train_loader = get_dataloader(
                     data=inner_train,
                     input_steps=100,
@@ -244,8 +243,10 @@ def evaluate(pipeline, dataset, configuration, cached_evaluations):
     score = np.sqrt(mean_squared_error(actuals, forecasts))
     if score > 10:
         score = 10
+    if map_score > 10:
+        map_score = 10
     # print(np.average(actuals))
-    print(pipeline, score, map_score)
+    # print(pipeline, score, map_score)
     cached_evaluations[str(pipeline)] = (score, map_score)
     return score, map_score, cached_evaluations
 

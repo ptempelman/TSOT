@@ -33,7 +33,7 @@ def get_random_model_params(model):
         return {"regressor": random.choice(regressor_list)}
     elif model == "rnn":
         lr_options = [1e-3, 3e-4]
-        epoch_options = [25, 40]
+        epoch_options = [20, 30, 40]
         hidden_options = [16, 32, 64]
         return {
             "lr": random.choice(lr_options),
@@ -42,7 +42,7 @@ def get_random_model_params(model):
         }
     elif model == "gru":
         lr_options = [1e-3, 3e-4]
-        epoch_options = [25, 40]
+        epoch_options = [20, 30, 40]
         hidden_options = [16, 32, 64]
         return {
             "lr": random.choice(lr_options),
@@ -51,7 +51,7 @@ def get_random_model_params(model):
         }
     elif model == "transformer":
         lr_options = [1e-3, 3e-4]
-        epoch_options = [25, 40]
+        epoch_options = [20, 30, 40]
         d_model_options = [32, 64, 128]
         return {
             "lr": random.choice(lr_options),
